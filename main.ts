@@ -3,7 +3,7 @@
 // (default /output). The sentence must stay within the gate: 1-240 characters,
 // one sentence, plain words, no jargon. Node 22 stdlib only, no dependencies.
 // The output file holds exactly the sentence, with no trailing newline.
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 const PITCH =
@@ -29,4 +29,11 @@ const rawOutDir = process.env.MAKEFUN_OUTPUT_DIR;
 const outputDir =
   rawOutDir && rawOutDir.trim() !== "" ? rawOutDir : "/output";
 mkdirSync(outputDir, { recursive: true });
-writeFileSync(join(outputDir, "entry.txt"), PITCH, "utf8");
+const outputPath = join(outputDir, "entry.txt");
+writeFileSync(outputPath, PITCH, "utf8");
+// Read the entry back and confirm the file holds exactly the pitch:
+// a truncated or altered write must fail loudly instead of reaching the judge.
+const written = readFileSync(outputPath, "utf8");
+if (written !== PITCH) {
+  throw new Error("entry.txt does not match the pitch after writing.");
+}
